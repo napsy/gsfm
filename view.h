@@ -13,6 +13,7 @@ struct _view {
              show_backup;
 };
 
+void view_move_up(GObject *object, gpointer user_data);
 struct _view *create_view();
 
 #endif /* __VIEW_H__ */

@@ -1,4 +1,4 @@
-CFLAGS = -Wformat-nonliteral -ggdb -O0 -Wall -Werror `pkg-config --cflags gtk+-3.0` -ggdb -O0
+CFLAGS = -Wformat-nonliteral -ggdb -O0 -Wall -Werror `pkg-config --cflags gtk+-3.0`
 LDFLAGS = -pthread `pkg-config --libs gtk+-3.0`
 OBJECTS = $(SOURCES:.c=.o)
 BUILD = gsfm

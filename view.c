@@ -1,5 +1,5 @@
 #include "view.h"
-
+#include "chrome.h"
 #include <string.h>
 
 void _pupulate_list_ready (GObject *source_object, GAsyncResult *res, gpointer user_data)
@@ -62,7 +62,68 @@ void populate_list(GtkListStore *list_store, const char *path)
 
     g_file_enumerate_children_async(parent_dir, attrs, G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
             G_PRIORITY_DEFAULT, NULL, _pupulate_list_ready, list_store);
+}
 
+void view_move_up(GObject *object, gpointer user_data)
+{
+    struct _view *view = chrome->selected_view;
+    GtkTreePath *path = NULL;
+    gtk_tree_view_get_cursor(GTK_TREE_VIEW(view->tree_view), &path, NULL);
+    if (!path) {
+        if (gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(view->tree_view), 0, 0, &path, NULL, NULL, NULL) == FALSE) {
+            return;
+        }
+    }
+    gtk_tree_path_prev(path);
+    gtk_tree_view_set_cursor(GTK_TREE_VIEW(view->tree_view), path, NULL, FALSE);
+    gtk_tree_path_free(path);
+}
+
+void view_move_down(GObject *object, gpointer user_data)
+{
+    struct _view *view = chrome->selected_view;
+    GtkTreePath *path = NULL;
+    gtk_tree_view_get_cursor(GTK_TREE_VIEW(view->tree_view), &path, NULL);
+    if (!path) {
+        if (gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(view->tree_view), 0, 0, &path, NULL, NULL, NULL) == FALSE) {
+            return;
+        }
+    }
+    gtk_tree_path_next(path);
+    gtk_tree_view_set_cursor(GTK_TREE_VIEW(view->tree_view), path, NULL, FALSE);
+    gtk_tree_path_free(path);
+
+}
+void view_focus_location(GObject *object, gpointer user_data)
+{
+    struct _view *view = chrome->selected_view;
+    gtk_widget_grab_focus(view->entry_path);
+}
+
+void install_view_keyboard_bindings(struct _view *view)
+{
+    GtkAccelGroup *gtk_accel = gtk_accel_group_new ();
+    GClosure *closure;
+
+    // Move up
+    closure = g_cclosure_new(G_CALLBACK(view_move_up), (gpointer)view, NULL);
+    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("k"),0,
+        GTK_ACCEL_VISIBLE, closure);
+    g_closure_unref(closure);
+    
+    // Move down
+    closure = g_cclosure_new(G_CALLBACK(view_move_down), (gpointer)view, NULL);
+    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("j"), 0,
+        GTK_ACCEL_VISIBLE, closure);
+    g_closure_unref(closure);
+    
+    // Change location
+    closure = g_cclosure_new(G_CALLBACK(view_focus_location), (gpointer)view, NULL);
+    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("l"), GDK_CONTROL_MASK,
+        GTK_ACCEL_VISIBLE, closure);
+    g_closure_unref(closure);
+    
+    gtk_window_add_accel_group (GTK_WINDOW(chrome->window), gtk_accel);
 }
 
 void view_change_path(GtkEntry *entry, gpointer user_data)
@@ -70,6 +131,7 @@ void view_change_path(GtkEntry *entry, gpointer user_data)
     const char *new_path = gtk_entry_get_text(entry);
     struct _view *view = (struct _view *)user_data;
     populate_list(view->list_store, new_path);
+    gtk_widget_grab_focus(view->tree_view);
 }
 
 struct _view *create_view()
@@ -82,6 +144,8 @@ struct _view *create_view()
             G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
     view->tree_view = gtk_tree_view_new();
     view->entry_path = gtk_entry_new();
+    // Disable search so it won't effect keyboard binding.
+    gtk_tree_view_set_enable_search(GTK_TREE_VIEW(view->tree_view), FALSE);
     g_signal_connect(view->entry_path, "activate", G_CALLBACK(view_change_path), view);
     GtkCellRenderer *renderer;
     GtkTreeViewColumn *column;
@@ -136,5 +200,8 @@ struct _view *create_view()
     gtk_box_pack_start(GTK_BOX(box), view->entry_path, FALSE, FALSE, 2);
     gtk_box_pack_start(GTK_BOX(box), scrolled, TRUE, TRUE, 2);
     view->view = box;
+
+    install_view_keyboard_bindings(view);
+
     return view;
 }

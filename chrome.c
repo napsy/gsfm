@@ -1,14 +1,7 @@
 #include "chrome.h"
 #include "view.h"
 
-struct _chrome {
-    GtkWidget *grid,
-              *window;
-    GList *views;
-    struct _view *selected_view;
-};
 
-struct _chrome *chrome;
 
 void new_view_horizontal(GObject *object, gpointer user_data)
 {
@@ -56,21 +49,21 @@ void install_keyboard_bindings()
 
     // Horizontal split
     closure = g_cclosure_new(G_CALLBACK(new_view_horizontal), (gpointer)NULL, NULL);
-    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("d"), GDK_MOD1_MASK,
+    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("d"), GDK_CONTROL_MASK,
         GTK_ACCEL_VISIBLE, closure);
     g_closure_unref(closure);
     
     // Vertical split
     closure = g_cclosure_new(G_CALLBACK(new_view_vertical), (gpointer)NULL, NULL);
-    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("s"), GDK_MOD1_MASK,
+    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("s"), GDK_CONTROL_MASK,
         GTK_ACCEL_VISIBLE, closure);
     g_closure_unref(closure);
 
     closure = g_cclosure_new(G_CALLBACK(next_view), (gpointer)NULL, NULL);
-    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("w"), GDK_MOD1_MASK,
+    gtk_accel_group_connect(gtk_accel, gdk_keyval_from_name("w"), GDK_CONTROL_MASK,
         GTK_ACCEL_VISIBLE, closure);
     g_closure_unref(closure);
-
+    
     gtk_window_add_accel_group (GTK_WINDOW(chrome->window), gtk_accel);
 }
 
@@ -99,15 +92,18 @@ void window_select_view(GtkWidget *widget1, GdkEventButton *event, gpointer user
 }
 void init_main_window()
 {
-    struct _view *left_view = create_view(),
-                 *right_view = create_view();
+    struct _view *left_view,
+                 *right_view;
 
     chrome = g_malloc(sizeof(*chrome));
     chrome->views = NULL;
+    chrome->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+    left_view = create_view();
+    right_view = create_view();
     chrome->views = g_list_append(chrome->views, left_view);
     chrome->views = g_list_append(chrome->views, right_view);
 
-    chrome->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     chrome->grid = gtk_grid_new();
     gtk_grid_set_row_homogeneous(GTK_GRID(chrome->grid), TRUE);
     gtk_grid_set_column_homogeneous(GTK_GRID(chrome->grid), TRUE);

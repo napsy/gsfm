@@ -1,1 +1,39 @@
+=============================
 Gtk+ Simple File Manager
+=============================
+
+Copyright (C) 2012, Luka Napotnik <luka.napotnik@gmail.com>
+
+Full license can be found inside the LICENSE file, provided with
+the source code.
+
+ABOUT
+
+gsfm is a simple Gtk+3 file manager for quick directory manipulation. User can
+split the dirctory view vertically or horizontally, make basic oprations like
+file/directory copying, deleting and opening, execute shell commands.
+
+KEYBOARD SHORTCUTS
+
+The modifier key (MOD key in this documentation) is CTRL by default. You can
+change this by editing the configuration. The default keyboard shortcuts are
+similar of those in Vim, so Vim user should be familiar with them.
+
+<Mod>+w   : next view
+<Mod>+s   : split view vertically from the current view
+<Mod>+d   : split view horizontally from the current view
+<Mod>+l   : focus the location entry of the current view
+j,k       : move down(j) and move up(k) in view
+o         : open selected item
+!         : execute command in terminal in current view path
+/         : search in current view
+<space>   : add/remove item to/from selection
+y         : mark selection for copy
+c         : mark selection for cut
+d         : delete selection
+
+NOTE: not all shortcuts are functional yet because of ongoing development.
+
+CONFIGURATION
+
+Not available at the moment.
